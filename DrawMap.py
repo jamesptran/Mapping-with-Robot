@@ -9,7 +9,7 @@ s = []
 
 win = GraphWin('Map', 1200, 600) # give title and dimensions
 #win.yUp() # make right side up coordinates!
-f = open('Distance.csv', 'r')
+f = open('FakeDistance.csv', 'r')
 for line in f:
     s.append(line.rstrip().split(','))
 del s[0]
@@ -29,8 +29,6 @@ for i in range(len(s)):
 
     x1 = sin(radians(float(values[0])))*float(values[1])
     y1 = cos(radians(float(values[0])))*float(values[1])
-    print x0,y0
-    print x1,y1
     Line(original, Point(x1+x0,y1+y0)).draw(win)
 
     #if not (values == s[0]):
