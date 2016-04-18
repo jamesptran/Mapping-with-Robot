@@ -1,0 +1,49 @@
+int ultrasonic(){
+    int DistanceInCm;
+    SetSensorLowspeed(IN_2);
+    DistanceInCm = SensorUS(IN_2);
+    return DistanceInCm;
+}
+
+void TurnRight(){
+    OnFwd(OUT_B, 50);
+    OnFwd(OUT_A, 45);
+}
+
+void TurnLeft(){
+    OnFwd(OUT_A, 50);
+    OnFwd(OUT_B, 45);
+}
+
+void StopTheMotor(){
+    Off(OUT_AB);
+}
+
+void Fwd(){
+    OnFwd(OUT_AB, 60);
+    OnFwd(OUT_B, 60);
+}
+
+task main(){
+    int middledistance = 20;
+    int far = 23;
+    int close = 17;
+    do {
+        int USreading = ultrasonic();
+
+        if(((USreading<middledistance) && (USreading> close)) || ((USreading>middledistance) && (USreading<far))){
+            Fwd();
+        }
+        /*if (USreading>far) {
+            StopTheMotor();
+            break;
+        }*/
+        if (USreading < close) {
+            TurnLeft();
+        }
+        if (USreading > far) {
+            TurnRight();
+        }
+        Wait(1);
+    } while (true);
+}
