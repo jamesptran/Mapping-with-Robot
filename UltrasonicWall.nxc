@@ -1,3 +1,5 @@
+float speedcalibration = 1.016; //=motorA / motorB
+
 int ultrasonic(){
     int DistanceInCm;
     SetSensorLowspeed(IN_2);
@@ -6,13 +8,27 @@ int ultrasonic(){
 }
 
 void TurnRight(){
-    OnFwd(OUT_B, 50);
-    OnFwd(OUT_A, 45);
+    Off(OUT_AB);
+    OnFwd(OUT_B, 50*speedcalibration);
+    Wait(500);
+    Off(OUT_AB);
+    OnFwd(OUT_A, 50);
+    Wait(500);
+
+    OnFwd(OUT_B, 60*speedcalibration);
+    OnFwd(OUT_A, 60);
 }
 
 void TurnLeft(){
+    Off(OUT_AB);
     OnFwd(OUT_A, 50);
-    OnFwd(OUT_B, 45);
+    Wait(500);
+    Off(OUT_AB);
+    OnFwd(OUT_B, 50*speedcalibration);
+    Wait(500);
+
+    OnFwd(OUT_B, 60*speedcalibration);
+    OnFwd(OUT_A, 60);
 }
 
 void StopTheMotor(){
@@ -20,13 +36,15 @@ void StopTheMotor(){
 }
 
 void Fwd(){
-    OnFwd(OUT_AB, 60);
+    OnFwd(OUT_B, 60*speedcalibration);
+    OnFwd(OUT_A, 60);
 }
 
 task main(){
     int middledistance = 20;
     int far = 23;
     int close = 17;
+    int toofar = 50;
     do {
         int USreading = ultrasonic();
 
@@ -37,8 +55,12 @@ task main(){
         if (USreading < close) {
             TurnLeft();
         }
-        if (USreading > far) {
+        if (USreading > far && USreading < toofar) {
             TurnRight();
+        }
+        if (USreading > toofar) {
+            StopTheMotor();
+            break;
         }
         Wait(1);
     } while (true);
