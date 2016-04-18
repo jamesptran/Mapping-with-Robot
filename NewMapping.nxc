@@ -183,7 +183,7 @@ task main(){
     SetSensorLight(IN_1);
 
     InitWriteToFile();
-    WriteToFile("Compass,Degree");
+    WriteToFile("Compass,WheelDegree,Time");
     //calibrate
 
     //calibrate();
@@ -194,7 +194,7 @@ task main(){
     Fwd();
     Wait(800);
     seconddegree = CurrentDeg();
-    text = NumToStr(compassvalue) + "," + NumToStr(seconddegree - firstdegree);
+    text = NumToStr(compassvalue) + "," + NumToStr(seconddegree - firstdegree) + "," + NumToStr(CurrentTick() - FirstTick());
     WriteToFile(text);
 
     do {
@@ -204,7 +204,7 @@ task main(){
         if ((sensor1 > yellow) || (sensor3 > yellow)) {
 
             seconddegree = CurrentDeg();
-            text = NumToStr(compassvalue) + "," + NumToStr(seconddegree - firstdegree);
+            text = NumToStr(compassvalue) + "," + NumToStr(seconddegree - firstdegree) + "," + NumToStr(CurrentTick() - FirstTick());
             WriteToFile(text);
             StopTheMotor();
             StopWriteToFile();
@@ -224,7 +224,7 @@ task main(){
             if (read){
                 StopTheMotor();
                 seconddegree = CurrentDeg();
-                text = NumToStr(compassvalue) + "," + NumToStr(seconddegree - firstdegree);
+                text = NumToStr(compassvalue) + "," + NumToStr(seconddegree - firstdegree) + "," + NumToStr(CurrentTick() - FirstTick());
                 WriteToFile(text);
                 read = false;
                 forward = true;
@@ -236,7 +236,7 @@ task main(){
             if (read){
                 StopTheMotor();
                 seconddegree = CurrentDeg();
-                text = NumToStr(compassvalue) + "," + NumToStr(seconddegree - firstdegree);
+                text = NumToStr(compassvalue) + "," + NumToStr(seconddegree - firstdegree) + "," + NumToStr(CurrentTick() - FirstTick());
                 WriteToFile(text);
                 read = false;
                 forward = true;
