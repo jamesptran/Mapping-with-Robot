@@ -34,10 +34,7 @@ task main(){
         if(((USreading<middledistance) && (USreading> close)) || ((USreading>middledistance) && (USreading<far))){
             Fwd();
         }
-        /*if (USreading>far) {
-            StopTheMotor();
-            break;
-        }*/
+    
         if (USreading < close) {
             TurnLeft();
         }

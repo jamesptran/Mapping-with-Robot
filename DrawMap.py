@@ -9,7 +9,7 @@ s = []
 
 win = GraphWin('Map', 1200, 600) # give title and dimensions
 #win.yUp() # make right side up coordinates!
-f = open('FakeDistance.csv', 'r')
+f = open('Distance.csv', 'r')
 for line in f:
     s.append(line.rstrip().split(','))
 del s[0]
