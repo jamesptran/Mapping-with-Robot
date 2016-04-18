@@ -30,7 +30,7 @@ task main(){
     do {
         int USreading = ultrasonic();
 
-        if(((USreading<middledistance) && (USreading> close)) || ((USreading>middledistance) && (USreading<far))){
+        if((USreading> close) && (USreading<far)){
             Fwd();
         }
 
