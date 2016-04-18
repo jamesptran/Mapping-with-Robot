@@ -21,7 +21,6 @@ void StopTheMotor(){
 
 void Fwd(){
     OnFwd(OUT_AB, 60);
-    OnFwd(OUT_B, 60);
 }
 
 task main(){
@@ -34,7 +33,7 @@ task main(){
         if(((USreading<middledistance) && (USreading> close)) || ((USreading>middledistance) && (USreading<far))){
             Fwd();
         }
-    
+
         if (USreading < close) {
             TurnLeft();
         }
