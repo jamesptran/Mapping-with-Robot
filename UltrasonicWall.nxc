@@ -87,20 +87,6 @@ void TurnLeft(){
     Off(OUT_AB);
 }
 
-void StopTheMotor(){
-    Off(OUT_AB);
-}
-
-void Fwd(){
-    OnFwd(OUT_B, 60*speedcalibration);
-    OnFwd(OUT_A, 60);
-}
-
-void Rev(){
-    OnRev(OUT_B, 60*speedcalibration);
-    OnRev(OUT_A, 60);
-}
-
 void Turn90Right(){
     Off(OUT_AB);
     OnFwd(OUT_B, 50*speedcalibration);
