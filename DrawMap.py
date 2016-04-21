@@ -9,13 +9,13 @@ s = []
 
 win = GraphWin('Map', 1200, 600) # give title and dimensions
 #win.yUp() # make right side up coordinates!
-f = open('Distance.csv', 'r')
+f = open('DistanceTrue.csv', 'r')
 for line in f:
     s.append(line.rstrip().split(','))
 del s[0]
 
 for i in range(len(s)):
-    s[i][1] = float(s[i][1])/10
+    s[i][1] = float(s[i][1])
     s[i][0] = -float(s[i][0])
 
 

@@ -190,7 +190,7 @@ task main(){
             TurnLeft();
         }
 
-        if ((CurrentDeg() * degreetodistance > 300)){
+        if ((CurrentDeg() * degreetodistance) > 800){
             Off(OUT_AB);
             break;
         }
