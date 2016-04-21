@@ -113,7 +113,7 @@ void Turn90Right(){
 
 int Compass(){
     SetSensorLowspeed(S4);
-    int currentCompass;
+    int currentCompass = 0;
     int i = 0;
     for (i = 0; i<5; i++){
         currentCompass += SensorHTCompass(S4);
