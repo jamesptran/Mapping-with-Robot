@@ -14,9 +14,9 @@ float yellow = 70.0;
 float calibration = 1.267; // = sensor3 / sensor1
 float sensor1=0;
 float sensor3=0;
-int firstdegree;
-int seconddegree;
-int compassvalue;
+int firstdegree=0;
+int seconddegree=0;
+int compassvalue=0;
 bool read = false;
 bool forward = true;
 float speedcalibration = 1.016; //=motorA / motorB
@@ -75,21 +75,15 @@ void StopWriteToFile() {
 
 void TurnRight(){
     Off(OUT_AB);
-    OnFwd(OUT_B, 50*speedcalibration);
-    Wait(100);
-    Off(OUT_AB);
-    OnFwd(OUT_A,50);
-    Wait(100);
+    OnFwd(OUT_B,40*speedcalibration);
+    Wait(200);
     Off(OUT_AB);
 }
 
 void TurnLeft(){
     Off(OUT_AB);
-    OnFwd(OUT_A, 50);
-    Wait(100);
-    Off(OUT_AB);
-    OnFwd(OUT_B,50*speedcalibration);
-    Wait(100);
+    OnFwd(OUT_A,40);
+    Wait(200);
     Off(OUT_AB);
 }
 
@@ -102,10 +96,19 @@ void Fwd(){
     OnFwd(OUT_A, 60);
 }
 
-void Turn90(){
+void Rev(){
+    OnRev(OUT_B, 60*speedcalibration);
+    OnRev(OUT_A, 60);
+}
+
+void Turn90Right(){
     Off(OUT_AB);
     OnFwd(OUT_B, 50*speedcalibration);
-    Wait(1000);
+    Wait(1050);
+    Off(OUT_AB);
+    OnFwd(OUT_AB,60);
+    Wait(2500);
+    Off(OUT_AB);
 }
 
 int Compass(){
@@ -120,63 +123,76 @@ int Compass(){
 }
 
 int UltrasonicFront(){
-    int TotalDistanceInCm = 0;
+    float TotalDistanceInCm = 0;
     SetSensorLowspeed(IN_2);
-    int i = 0;
-    for (i=0;i<5;i++){
-        TotalDistanceInCm += SensorUS(IN_2);
-        Wait(100);
-    }
-    TotalDistanceInCm /= i;
+    TotalDistanceInCm += SensorUS(IN_2);
     return TotalDistanceInCm;
 }
 
 int UltrasonicBack(){
-    int TotalDistanceInCm = 0;
-    SetSensorLowspeed(IN_1);
-    int i = 0;
-    for (i=0;i<5;i++){
-        TotalDistanceInCm += SensorUS(IN_2);
-        Wait(100);
-    }
-    TotalDistanceInCm /= i;
+    float TotalDistanceInCm = 0;
+    SetSensorLowspeed(IN_3);
+    TotalDistanceInCm += SensorUS(IN_3);
     return TotalDistanceInCm;
 }
 
+int CurrentDeg(){
+    int degA = MotorRotationCount(OUT_A);
+    int degB = MotorRotationCount(OUT_B);
+    return ((degA+degB)/2);
+}
+
+
 task main(){
-    int middledistance = 20;
-    int far = 23;
-    int close = 17;
-    int toofar = 50;
+    float far = 0;
+    float close = 0;
+    int toofar = 150;
     long firsttick = CurrentTick();
     long current = CurrentTick();
+    firstdegree = CurrentDeg();
+    seconddegree = CurrentDeg();
+    bool check = false;
 
     InitWriteToFile();
-    WriteToFile("Heading,Distance,Ticks");
+    //WriteToFile("Heading,Distance,Ticks");
+    current = CurrentTick();
+    int Backreading = UltrasonicBack();
+    int Frontreading = UltrasonicFront();
+    far = Backreading + 1;
+    close = Backreading - 1;
+    
+    float firstdistance, seconddistance;
+    float degreetodistance = 17.5/360;
 
-    do {
-        int USreading = UltrasonicFront();
-        current = CurrentTick();
-        if (current - firsttick >= 2000){
+    Frontreading = UltrasonicFront();
+    seconddistance = UltrasonicBack();
+
+    while (true){
+        if ((CurrentTick() - firsttick) >= 2000){
             //Read compass
-            compassvalue = compass();
-            text = NumToStr(compassvalue) + "," + NumToStr(seconddegree - firstdegree) + "," + NumToStr(CurrentTick() - FirstTick());
+            compassvalue = Compass();
+            seconddegree = CurrentDeg();
+            text = NumToStr(compassvalue) + "," + NumToStr((seconddegree - firstdegree)*degreetodistance) + "," + NumToStr(CurrentTick() - FirstTick());
             firsttick = CurrentTick();
+            firstdegree = CurrentDeg();
             WriteToFile(text);
         }
-        if((USreading> close) && (USreading<far)){
-            Fwd();
-        }
 
-        if (USreading < close) {
-            TurnLeft();
-        }
-        if (USreading > far && USreading < toofar) {
+        firstdistance = UltrasonicBack();
+        OnFwd(OUT_AB,50);
+        Wait(1000);
+        Off(OUT_AB);
+        seconddistance = UltrasonicBack();
+        if ((seconddistance > firstdistance) && (seconddistance > far)){
             TurnRight();
         }
-        if (USreading > toofar) {
-            StopTheMotor();
+        if ((seconddistance < firstdistance) && (seconddistance < close)){
+            TurnLeft();
+        }
+
+        if ((CurrentDeg() * degreetodistance > 300)){
+            Off(OUT_AB);
             break;
         }
-    } while (true);
+    }
 }
