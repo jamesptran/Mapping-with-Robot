@@ -159,7 +159,10 @@ task main(){
         current = CurrentTick();
         if (current - firsttick >= 2000){
             //Read compass
+            compassvalue = compass();
+            text = NumToStr(compassvalue) + "," + NumToStr(seconddegree - firstdegree) + "," + NumToStr(CurrentTick() - FirstTick());
             firsttick = CurrentTick();
+            WriteToFile(text);
         }
         if((USreading> close) && (USreading<far)){
             Fwd();
