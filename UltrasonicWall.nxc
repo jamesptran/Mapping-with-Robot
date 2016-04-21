@@ -154,13 +154,13 @@ task main(){
     bool check = false;
 
     InitWriteToFile();
-    //WriteToFile("Heading,Distance,Ticks");
+    WriteToFile("Heading,Distance,Ticks");
     current = CurrentTick();
     int Backreading = UltrasonicBack();
     int Frontreading = UltrasonicFront();
     far = Backreading + 1;
     close = Backreading - 1;
-    
+
     float firstdistance, seconddistance;
     float degreetodistance = 17.5/360;
 
