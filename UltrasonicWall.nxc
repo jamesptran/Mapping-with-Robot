@@ -132,7 +132,7 @@ int CurrentDeg(){
 task main(){
     float far = 0;
     float close = 0;
-    int toofar = 150;
+    int toofar = 0;
     long firsttick = CurrentTick();
     long current = CurrentTick();
     firstdegree = CurrentDeg();
@@ -145,6 +145,7 @@ task main(){
     int Backreading = UltrasonicBack();
     int Frontreading = UltrasonicFront();
     far = Backreading + 1;
+    toofar = Backreading + 20;
     close = Backreading - 1;
 
     float firstdistance, seconddistance;
@@ -165,16 +166,21 @@ task main(){
         }
 
         firstdistance = UltrasonicBack();
-        OnFwd(OUT_AB,50);
-        Wait(1000);
+        OnFwd(OUT_AB,75);
+        Wait(750);
         Off(OUT_AB);
         seconddistance = UltrasonicBack();
+        if ((seconddistance > firstdistance) && (seconddistance > toofar)){
+            Turn90Right();
+        }
         if ((seconddistance > firstdistance) && (seconddistance > far)){
             TurnRight();
         }
         if ((seconddistance < firstdistance) && (seconddistance < close)){
             TurnLeft();
         }
+        
+
 
         if ((CurrentDeg() * degreetodistance) > 800){
             Off(OUT_AB);
