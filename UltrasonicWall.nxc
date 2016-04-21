@@ -97,6 +97,16 @@ void Turn90Right(){
     Off(OUT_AB);
 }
 
+void Turn90Left(){
+    Off(OUT_AB);
+    OnFwd(OUT_A, 50);
+    Wait(1050);
+    Off(OUT_AB);
+    OnFwd(OUT_AB,60);
+    Wait(2500);
+    Off(OUT_AB);
+}
+
 int Compass(){
     SetSensorLowspeed(S4);
     int currentCompass = 0;
@@ -135,8 +145,6 @@ task main(){
     int toofar = 0;
     long firsttick = CurrentTick();
     long current = CurrentTick();
-    firstdegree = CurrentDeg();
-    seconddegree = CurrentDeg();
     bool check = false;
 
     InitWriteToFile();
@@ -158,10 +166,8 @@ task main(){
         if ((CurrentTick() - firsttick) >= 2000){
             //Read compass
             compassvalue = Compass();
-            seconddegree = CurrentDeg();
-            text = NumToStr(compassvalue) + "," + NumToStr((seconddegree - firstdegree)*degreetodistance) + "," + NumToStr(CurrentTick() - FirstTick());
+            text = NumToStr(compassvalue) + "," + NumToStr(CurrentDeg()*degreetodistance) + "," + NumToStr(CurrentTick() - FirstTick());
             firsttick = CurrentTick();
-            firstdegree = CurrentDeg();
             WriteToFile(text);
         }
 
@@ -170,17 +176,21 @@ task main(){
         Wait(750);
         Off(OUT_AB);
         seconddistance = UltrasonicBack();
-        if ((seconddistance > firstdistance) && (seconddistance > toofar)){
+        if (seconddistance > toofar){
             Turn90Right();
         }
+
+        if (UltrasonicFront() < (far+10)){
+            Turn90Left();
+        }
+
         if ((seconddistance > firstdistance) && (seconddistance > far)){
             TurnRight();
         }
+
         if ((seconddistance < firstdistance) && (seconddistance < close)){
             TurnLeft();
         }
-        
-
 
         if ((CurrentDeg() * degreetodistance) > 800){
             Off(OUT_AB);
