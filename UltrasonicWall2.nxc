@@ -1,0 +1,191 @@
+// Global variables
+unsigned int result; // flag returned when handling files
+byte fileHandle; // handle to the data file
+short fileSize; // size of the file
+short bytesWritten; // number of bytes written to the file
+string fileHeader; // column header for data in the file
+int fileNumber, filePart; // integers to split up data file names
+string fileName; // name of the file
+string strFileNumber; // file number e.g myDataFile 1, 2, 3
+string strFilePart; // file part e.g. myDataFile1-1, 1-2, 1-3
+string text; // string to be written to file i.e. data values
+float white = 57.0;
+float yellow = 70.0;
+float calibration = 1.267; // = sensor3 / sensor1
+float sensor1=0;
+float sensor3=0;
+int firstdegree=0;
+int seconddegree=0;
+int compassvalue=0;
+bool read = false;
+bool forward = true;
+float speedcalibration = 1.016; //=motorA / motorB
+
+void InitWriteToFile() {
+  fileNumber = 0;  // set first data file to be zero
+  filePart = 0; // set first part of first data file to zero
+  fileName = "Distance.csv"; // name of data file
+  result=CreateFile(fileName, 1024, fileHandle);
+  // returns file handle (unsigned int)
+  // check if the file already exists
+
+    while (result==LDR_FILEEXISTS) // LDR_FILEEXISTS is returned if file pre-exists
+     {
+      CloseFile(fileHandle);
+      fileNumber = fileNumber + 1; // if data file already exists, create new one
+      fileName=NumToStr(fileNumber);
+      fileName=StrCat("Distance", fileName, ".csv");
+      result=CreateFile(fileName, 1024, fileHandle);
+      } // end while
+
+  // Write string and new line to a file
+  // bytesWritten is an unsigned int.  Its value is # of bytes written
+} // end InitWriteToFile
+
+void WriteToFile(string strTempText) {
+      // strTempText stores the text (i.e. stuffs to be written to file)
+    // write string to file
+    result=WriteLnString(fileHandle, strTempText, bytesWritten);
+    // if the end of file is reached, close the file and create a new part
+    if (result==LDR_EOFEXPECTED) // LDR_EOFEXPECTED is flagged when end-of-file
+        {
+        // close the current file
+        CloseFile(fileHandle);
+        // Closes file associated with file handle
+    // create the next file name
+    filePart = filePart + 1;
+    strFileNumber = NumToStr(fileNumber);
+    strFilePart = NumToStr(filePart);
+    fileName = StrCat("Distance", strFileNumber,"-", strFilePart ,".csv");
+        // delete the file if it exists
+        DeleteFile(fileName);
+        // Delete the file specified by the string input
+        // create a new file
+        CreateFile(fileName, 1024, fileHandle);
+        // play a tone every time a file is created
+        PlayTone(TONE_B7, 5);
+        WriteLnString(fileHandle, strTempText, bytesWritten);
+        } // end if
+    } // end WriteToFile
+
+void StopWriteToFile() {
+  // close the file
+  CloseFile(fileHandle);
+} // end StopWriteToFile
+
+void TurnRight(){
+    OnFwd(OUT_B,70);
+    OnFwd(OUT_A,50);
+    Wait(100);
+    OnFwd(OUT_B,50);
+}
+
+void TurnLeft(){
+    OnFwd(OUT_A,70);
+    OnFwd(OUT_B,50);
+    Wait(100);
+    OnFwd(OUT_A,50);
+}
+
+void Turn90Right(){
+    Off(OUT_AB);
+    OnFwd(OUT_B, 50*speedcalibration);
+    Wait(1050);
+    Off(OUT_AB);
+    OnFwd(OUT_AB,60);
+    Wait(2000);
+    Off(OUT_AB);
+}
+
+void Turn90Left(){
+    Off(OUT_AB);
+    OnFwd(OUT_A, 50);
+    Wait(1050);
+    Off(OUT_AB);
+    //OnFwd(OUT_AB,60);
+    //Wait(1500);
+    //Off(OUT_AB);
+}
+
+int Compass(){
+    SetSensorLowspeed(S4);
+    return SensorHTCompass(S4);
+}
+
+int UltrasonicFront(){
+    SetSensorLowspeed(IN_2);
+    return SensorUS(IN_2);
+}
+
+int UltrasonicBack2(){
+    SetSensorLowspeed(IN_3);
+    return SensorUS(IN_3);;
+}
+
+int UltrasonicBack(){
+    SetSensorLowspeed(IN_1);
+    return SensorUS(IN_1);
+}
+
+int CurrentDeg(){
+    int degA = MotorRotationCount(OUT_A);
+    int degB = MotorRotationCount(OUT_B);
+    return ((degA+degB)/2);
+}
+
+
+task main(){
+    float far = 0;
+    float close = 0;
+    int toofar = 0;
+    long firsttick = CurrentTick();
+    long current = CurrentTick();
+    bool check = false;
+    float firstdeg, seconddeg;
+
+    InitWriteToFile();
+    WriteToFile("Heading,Distance,Ticks");
+    current = CurrentTick();
+    far = UltrasonicBack() + 1;
+    toofar = UltrasonicBack() + 30;
+    close = UltrasonicBack() - 1;
+
+    float degreetodistance = 17.5/360;
+    int i = 1;
+    bool abc = true;
+    float d = 0;
+
+
+    while (true){
+        abc = true;
+        if ((CurrentTick() - firsttick) >= 2000){
+            //Read compass
+            compassvalue = Compass();
+            text = NumToStr(compassvalue) + "," + NumToStr(CurrentDeg()*degreetodistance) + "," + NumToStr(CurrentTick() - FirstTick());
+            firsttick = CurrentTick();
+            WriteToFile(text);
+        }
+
+        OnFwd(OUT_AB,50);
+
+        if (UltrasonicBack() > toofar){
+            Turn90Right();
+            abc = false;
+        }
+
+        if (UltrasonicFront() < (far*1.2)){
+            Turn90Left();
+            abc = false;
+        }
+
+        if ((UltrasonicBack2() >= UltrasonicBack()) && ((UltrasonicBack2() + UltrasonicBack())/2.0 > far) && abc){
+            TurnRight();
+            abc = false;
+        }
+
+        if ((UltrasonicBack2() <= UltrasonicBack()) && ((UltrasonicBack2() + UltrasonicBack())/2.0 < close) && abc){
+            TurnLeft();
+            abc = false;
+        }
+    }
+}
