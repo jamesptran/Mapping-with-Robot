@@ -93,7 +93,7 @@ void Turn90Right(){
     Wait(1050);
     Off(OUT_AB);
     OnFwd(OUT_AB,60);
-    Wait(2500);
+    Wait(2000);
     Off(OUT_AB);
 }
 
@@ -102,9 +102,9 @@ void Turn90Left(){
     OnFwd(OUT_A, 50);
     Wait(1050);
     Off(OUT_AB);
-    OnFwd(OUT_AB,60);
-    Wait(2500);
-    Off(OUT_AB);
+    //OnFwd(OUT_AB,60);
+    //Wait(1500);
+    //Off(OUT_AB);
 }
 
 int Compass(){
@@ -127,8 +127,8 @@ int UltrasonicFront(){
 
 int UltrasonicBack(){
     float TotalDistanceInCm = 0;
-    SetSensorLowspeed(IN_3);
-    TotalDistanceInCm += SensorUS(IN_3);
+    SetSensorLowspeed(IN_1);
+    TotalDistanceInCm += SensorUS(IN_1);
     return TotalDistanceInCm;
 }
 
@@ -146,6 +146,7 @@ task main(){
     long firsttick = CurrentTick();
     long current = CurrentTick();
     bool check = false;
+    float firstdeg, seconddeg;
 
     InitWriteToFile();
     WriteToFile("Heading,Distance,Ticks");
@@ -153,16 +154,18 @@ task main(){
     int Backreading = UltrasonicBack();
     int Frontreading = UltrasonicFront();
     far = Backreading + 1;
-    toofar = Backreading + 20;
+    toofar = Backreading + 30;
     close = Backreading - 1;
 
     float firstdistance, seconddistance;
     float degreetodistance = 17.5/360;
-
+    int i = 1;
     Frontreading = UltrasonicFront();
     seconddistance = UltrasonicBack();
+    bool abc = true;
 
     while (true){
+        abc = true;
         if ((CurrentTick() - firsttick) >= 2000){
             //Read compass
             compassvalue = Compass();
@@ -172,29 +175,52 @@ task main(){
         }
 
         firstdistance = UltrasonicBack();
-        OnFwd(OUT_AB,75);
-        Wait(750);
+        firstdeg = CurrentDeg();
+        OnFwd(OUT_AB,60);
+        Wait(1000);
         Off(OUT_AB);
+        seconddeg = CurrentDeg();
         seconddistance = UltrasonicBack();
         if (seconddistance > toofar){
             Turn90Right();
+            abc = false;
         }
 
         if (UltrasonicFront() < (far+10)){
             Turn90Left();
+            abc = false;
+
         }
 
-        if ((seconddistance > firstdistance) && (seconddistance > far)){
-            TurnRight();
+        if ((seconddistance >= firstdistance) && (seconddistance > far) && abc){
+            float tan = (seconddistance - firstdistance)/((seconddeg-firstdeg)*degreetodistance);
+            if (tan > 0.57735) {
+                i = 3;
+            } else {
+            if (tan > 0.36397) {
+                i = 2;
+            } else {
+                i = 1;
+            }}
+            repeat(i){
+                TurnRight();
+            }
+            abc = false;
         }
 
-        if ((seconddistance < firstdistance) && (seconddistance < close)){
-            TurnLeft();
-        }
-
-        if ((CurrentDeg() * degreetodistance) > 800){
-            Off(OUT_AB);
-            break;
+        if ((seconddistance <= firstdistance) && (seconddistance < close) && abc){
+            float tan = (firstdistance-seconddistance)/((seconddeg-firstdeg)*degreetodistance);
+            if (tan > 0.57735) {
+                i = 3;
+            } else {
+            if (tan > 0.36397) {
+                i = 2;
+            } else {
+                i = 1;
+            }}
+            repeat(i){
+                TurnLeft();
+            }
         }
     }
 }
