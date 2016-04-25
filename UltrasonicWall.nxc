@@ -221,6 +221,7 @@ task main(){
             repeat(i){
                 TurnLeft();
             }
+            abc = false;
         }
     }
 }
