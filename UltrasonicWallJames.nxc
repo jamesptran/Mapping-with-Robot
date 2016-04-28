@@ -79,32 +79,33 @@ void TurnRight(){
 }
 
 void TurnLeft(){
-    OnFwd(OUT_A,70);
-    OnFwd(OUT_B,50);
+    Off(OUT_AB);
+    OnFwd(OUT_A, 40);
 }
 
 void Turn90Right(){
     Off(OUT_AB);
-    OnFwd(OUT_B, 40*speedcalibration);
+    OnFwd(OUT_B, 50*speedcalibration);
+    OnFwd(OUT_A, 25);
 }
 
 void Turn90Left(){
     Off(OUT_AB);
-    //OnFwd(OUT_B, 20);
-    OnFwd(OUT_A, 40);
+    OnFwd(OUT_B, 25*speedcalibration);
+    OnFwd(OUT_A, 50);
     //OnFwd(OUT_AB,60);
     //Wait(1500);
     //Off(OUT_AB);
 }
 
 int Compass(){
-    SetSensorLowspeed(S4);
-    return SensorHTCompass(S4);
+    SetSensorLowspeed(S2);
+    return SensorHTCompass(S2);
 }
 
 int UltrasonicFront(){
-    SetSensorLowspeed(IN_2);
-    return SensorUS(IN_2);
+    SetSensorLowspeed(IN_4);
+    return SensorUS(IN_4);
 }
 
 int UltrasonicBack2(){
@@ -114,7 +115,7 @@ int UltrasonicBack2(){
 
 int UltrasonicBack(){
     SetSensorLowspeed(IN_1);
-    return SensorUS(IN_1) + 2;
+    return SensorUS(IN_1);
 }
 
 int CurrentDeg(){
@@ -146,12 +147,12 @@ task main(){
     bool check = false;
     float firstdeg, seconddeg;
 
-    /*InitWriteToFile();
-    WriteToFile("Heading,Distance,Ticks");*/
+    InitWriteToFile();
+    WriteToFile("Heading,Distance,Ticks");
     current = CurrentTick();
-    far = Which() + 1;
-    float mid = 30;
-    close = Which() - 1;
+    far = 30 + 1;
+    float mid = 27;
+    close = 30 - 1;
 
     float degreetodistance = 17.5/360;
     int i = 1;
@@ -161,16 +162,17 @@ task main(){
 
     while (true){
         abc = true;
-        /*if ((CurrentTick() - firsttick) >= 2000){
+        if ((CurrentTick() - firsttick) >= 2000){
             //Read compass
+            Off(OUT_AB);
             compassvalue = Compass();
             text = NumToStr(compassvalue) + "," + NumToStr(CurrentDeg()*degreetodistance) + "," + NumToStr(CurrentTick() - FirstTick());
             firsttick = CurrentTick();
             WriteToFile(text);
-        }*/
+        }
 
-        if (UltrasonicFront() < 23){
-            Turn90Left();
+        if (UltrasonicFront() < 30){
+            TurnLeft();
             abc = false;
         }
 
@@ -195,6 +197,10 @@ task main(){
                 abc = false;
             }
             Wait(10);
+        }
+        if (CurrentDeg()*degreetodistance > 1300){
+            Off(OUT_AB);
+            break;
         }
     }
 }
