@@ -85,13 +85,13 @@ void TurnLeft(){
 
 void Turn90Right(){
     Off(OUT_AB);
-    OnFwd(OUT_B, 50*speedcalibration);
+    OnFwd(OUT_B, 40*speedcalibration);
 }
 
 void Turn90Left(){
     Off(OUT_AB);
     //OnFwd(OUT_B, 20);
-    OnFwd(OUT_A, 50);
+    OnFwd(OUT_A, 40);
     //OnFwd(OUT_AB,60);
     //Wait(1500);
     //Off(OUT_AB);
@@ -114,7 +114,7 @@ int UltrasonicBack2(){
 
 int UltrasonicBack(){
     SetSensorLowspeed(IN_1);
-    return SensorUS(IN_1);
+    return SensorUS(IN_1) + 2;
 }
 
 int CurrentDeg(){
@@ -149,9 +149,9 @@ task main(){
     /*InitWriteToFile();
     WriteToFile("Heading,Distance,Ticks");*/
     current = CurrentTick();
-    far = UltrasonicBack() + 1;
-    toofar = UltrasonicBack() + 30;
-    close = UltrasonicBack() - 1;
+    far = Which() + 1;
+    float mid = 30;
+    close = Which() - 1;
 
     float degreetodistance = 17.5/360;
     int i = 1;
@@ -169,35 +169,32 @@ task main(){
             WriteToFile(text);
         }*/
 
-        if (UltrasonicFront() < far){
+        if (UltrasonicFront() < 23){
             Turn90Left();
             abc = false;
         }
-
-
 
         if (abc){
             float b, b2;
             b = UltrasonicBack();
             b2 = UltrasonicBack2();
-            if (b2 > b && Which() > far && abc){
+
+            if (b2 > b && Which() > mid && abc){
                 Turn90Right();
                 abc = false;
             }
-            if (b2 < b && Which() < close && abc){
+
+            if (b2 < b && Which() < mid && abc){
                 Turn90Left();
                 abc = false;
             }
-            if (Which() < far && Which() > close && abc){
-                OnFwd(OUT_AB, 50);
-                OnFwd(OUT_B, 50*speedcalibration);
-                abc = false;
-            }
+
             if (abc){
-                OnFwd(OUT_AB, 50);
-                OnFwd(OUT_B, 50*speedcalibration);
+                OnFwd(OUT_AB, 70);
+                OnFwd(OUT_B, 70*speedcalibration);
                 abc = false;
             }
+            Wait(10);
         }
     }
 }
