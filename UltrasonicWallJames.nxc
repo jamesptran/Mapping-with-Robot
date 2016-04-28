@@ -76,32 +76,22 @@ void StopWriteToFile() {
 void TurnRight(){
     OnFwd(OUT_B,70);
     OnFwd(OUT_A,50);
-    Wait(100);
-    OnFwd(OUT_B,50);
 }
 
 void TurnLeft(){
     OnFwd(OUT_A,70);
     OnFwd(OUT_B,50);
-    Wait(100);
-    OnFwd(OUT_A,50);
 }
 
 void Turn90Right(){
     Off(OUT_AB);
     OnFwd(OUT_B, 50*speedcalibration);
-    Wait(1050);
-    Off(OUT_AB);
-    OnFwd(OUT_AB,60);
-    Wait(2000);
-    Off(OUT_AB);
 }
 
 void Turn90Left(){
     Off(OUT_AB);
+    //OnFwd(OUT_B, 20);
     OnFwd(OUT_A, 50);
-    Wait(1050);
-    Off(OUT_AB);
     //OnFwd(OUT_AB,60);
     //Wait(1500);
     //Off(OUT_AB);
@@ -119,7 +109,7 @@ int UltrasonicFront(){
 
 int UltrasonicBack2(){
     SetSensorLowspeed(IN_3);
-    return SensorUS(IN_3);;
+    return SensorUS(IN_3);
 }
 
 int UltrasonicBack(){
@@ -133,6 +123,19 @@ int CurrentDeg(){
     return ((degA+degB)/2);
 }
 
+int Which(){
+    /*if (UltrasonicBack() > UltrasonicBack2()){
+        return UltrasonicBack2();
+    }
+    else {
+        return UltrasonicBack();
+    }*/
+    return (UltrasonicBack2() + UltrasonicBack()) / 2;
+}
+
+int Diff(){
+    return abs(UltrasonicBack() - UltrasonicBack2());
+}
 
 task main(){
     float far = 0;
@@ -143,8 +146,8 @@ task main(){
     bool check = false;
     float firstdeg, seconddeg;
 
-    InitWriteToFile();
-    WriteToFile("Heading,Distance,Ticks");
+    /*InitWriteToFile();
+    WriteToFile("Heading,Distance,Ticks");*/
     current = CurrentTick();
     far = UltrasonicBack() + 1;
     toofar = UltrasonicBack() + 30;
@@ -158,34 +161,43 @@ task main(){
 
     while (true){
         abc = true;
-        if ((CurrentTick() - firsttick) >= 2000){
+        /*if ((CurrentTick() - firsttick) >= 2000){
             //Read compass
             compassvalue = Compass();
             text = NumToStr(compassvalue) + "," + NumToStr(CurrentDeg()*degreetodistance) + "," + NumToStr(CurrentTick() - FirstTick());
             firsttick = CurrentTick();
             WriteToFile(text);
-        }
+        }*/
 
-        OnFwd(OUT_AB,50);
-
-        if (UltrasonicBack() > toofar){
-            Turn90Right();
-            abc = false;
-        }
-
-        if (UltrasonicFront() < (far*1.2)){
+        if (UltrasonicFront() < far){
             Turn90Left();
             abc = false;
         }
 
-        if ((UltrasonicBack2() >= UltrasonicBack()) && ((UltrasonicBack2() + UltrasonicBack())/2.0 > far) && abc){
-            TurnRight();
-            abc = false;
-        }
 
-        if ((UltrasonicBack2() <= UltrasonicBack()) && ((UltrasonicBack2() + UltrasonicBack())/2.0 < close) && abc){
-            TurnLeft();
-            abc = false;
+
+        if (abc){
+            float b, b2;
+            b = UltrasonicBack();
+            b2 = UltrasonicBack2();
+            if (b2 > b && Which() > far && abc){
+                Turn90Right();
+                abc = false;
+            }
+            if (b2 < b && Which() < close && abc){
+                Turn90Left();
+                abc = false;
+            }
+            if (Which() < far && Which() > close && abc){
+                OnFwd(OUT_AB, 50);
+                OnFwd(OUT_B, 50*speedcalibration);
+                abc = false;
+            }
+            if (abc){
+                OnFwd(OUT_AB, 50);
+                OnFwd(OUT_B, 50*speedcalibration);
+                abc = false;
+            }
         }
     }
 }
